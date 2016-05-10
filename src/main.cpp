@@ -1,8 +1,8 @@
-#include "Physics.h"
+#include "PhysicsApplication.h"
 
 int main()
 {
-    Physics app;
+    PhysicsApplication app;
 
     if (app.startup() == false)
     {

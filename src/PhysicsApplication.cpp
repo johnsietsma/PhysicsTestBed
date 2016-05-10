@@ -1,4 +1,8 @@
-#include "Physics.h"
+#include "PhysicsApplication.h"
+
+#include "RigidBody.h"
+#include "PhysicsObject.h"
+#include "Shapes.h"
 
 #include "gl_core_4_4.h"
 #include "GLFW/glfw3.h"
@@ -7,10 +11,14 @@
 #include "glm/ext.hpp"
 #include "glm/gtc/quaternion.hpp"
 
+#include <PxPhysicsAPI.h>
+
+using namespace physx;
+
 #define Assert(val) if (val){}else{ *((char*)0) = 0;}
 #define ArrayCount(val) (sizeof(val)/sizeof(val[0]))
 
-bool Physics::startup()
+bool PhysicsApplication::startup()
 {
     if (Application::startup() == false)
     {
@@ -25,19 +33,26 @@ bool Physics::startup()
     m_camera.setLookAt(vec3(10, 10, 10), vec3(0), vec3(0, 1, 0));
     m_camera.sensitivity = 3;
 
-	m_renderer = new Renderer();
+    m_pRenderer = std::make_unique<Renderer>();
+    m_pPhysicsScene = std::make_unique<PhysicsScene>();
+
+    auto pSphere = new Sphere( glm::vec3(0), 1 );
+    auto pRigidBody = new RigidBody(1);
+    auto pSphere1 = std::make_shared<PhysicsObject>( glm::vec3(0, 15, 0), pSphere, pRigidBody );
+    m_pPhysicsScene->AddObject( pSphere1 );
 	
+    m_leftFrameTime = (float)glfwGetTime();
+
     return true;
 }
 
-void Physics::shutdown()
+void PhysicsApplication::shutdown()
 {
-	delete m_renderer;
     Gizmos::destroy();
     Application::shutdown();
 }
 
-bool Physics::update()
+bool PhysicsApplication::update()
 {
     if (Application::update() == false)
     {
@@ -46,9 +61,9 @@ bool Physics::update()
 
     Gizmos::clear();
 
-    float dt = (float)glfwGetTime();
-    m_delta_time = dt;
-    glfwSetTime(0.0);
+    float currentTime = (float)glfwGetTime();
+    float deltaTime = currentTime - m_leftFrameTime;
+    m_leftFrameTime = currentTime;
 
     vec4 white(1);
     vec4 black(0, 0, 0, 1);
@@ -61,19 +76,24 @@ bool Physics::update()
             i == 10 ? white : black);
     }
 
-    m_camera.update(1.0f / 60.0f);
+    m_camera.update(deltaTime);
+
+    m_pPhysicsScene->Update(deltaTime);
 
 
     return true;
 }
 
-void Physics::draw()
+void PhysicsApplication::draw()
 {
     glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 	glEnable(GL_CULL_FACE);
-    Gizmos::draw(m_camera.proj, m_camera.view);
 
-    m_renderer->RenderAndClear(m_camera.view_proj);
+    m_pRenderer->RenderAndClear(m_camera.view_proj);
+
+    m_pPhysicsScene->Draw();
+
+    Gizmos::draw(m_camera.proj, m_camera.view);
 
     glfwSwapBuffers(m_window);
     glfwPollEvents();
@@ -121,7 +141,7 @@ void AddWidget(PxShape* shape, PxRigidActor* actor, vec4 geo_color)
     }
 }
 
-void Physics::renderGizmos(PxScene* physics_scene)
+void PhysicsApplication::renderGizmos(PxScene* physics_scene)
 {
     PxActorTypeFlags desiredTypes = PxActorTypeFlag::eRIGID_STATIC | PxActorTypeFlag::eRIGID_DYNAMIC;
     PxU32 actor_count = physics_scene->getNbActors(desiredTypes);

@@ -25,8 +25,12 @@
     <ClInclude Include="src\gl_core_4_4.h" />
     <ClInclude Include="src\ParticleEmitter.h" />
     <ClInclude Include="src\ParticleFluidEmitter.h" />
-    <ClInclude Include="src\Physics.h" />
+    <ClInclude Include="src\PhysicsApplication.h" />
+    <ClInclude Include="src\PhysicsObject.h" />
+    <ClInclude Include="src\PhysicsScene.h" />
     <ClInclude Include="src\Render.h" />
+    <ClInclude Include="src\RigidBody.h" />
+    <ClInclude Include="src\Shapes.h" />
     <ClInclude Include="src\stb_image.h" />
     <ClInclude Include="src\tiny_obj_loader.h" />
   </ItemGroup>
@@ -38,8 +42,11 @@
     <ClCompile Include="src\main.cpp" />
     <ClCompile Include="src\ParticleEmitter.cpp" />
     <ClCompile Include="src\ParticleFluidEmitter.cpp" />
-    <ClCompile Include="src\Physics.cpp" />
+    <ClCompile Include="src\PhysicsApplication.cpp" />
+    <ClCompile Include="src\PhysicsObject.cpp" />
+    <ClCompile Include="src\PhysicsScene.cpp" />
     <ClCompile Include="src\Renderer.cpp" />
+    <ClCompile Include="src\RigidBody.cpp" />
   </ItemGroup>
   <PropertyGroup Label="Globals">
     <ProjectGuid>{2BF7D9E8-B1F7-45C6-8E05-0E44707C465B}</ProjectGuid>

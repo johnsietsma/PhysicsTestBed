@@ -4,12 +4,14 @@
 #include "Application.h"
 #include "Camera.h"
 #include "Render.h"
+#include "PhysicsScene.h"
 
-#include <PxPhysicsAPI.h>
+#include <memory>
+
 #include <PxScene.h>
 
-using namespace physx;
-class Physics : public Application
+
+class PhysicsApplication : public Application
 {
 public:
 	virtual bool startup();
@@ -17,11 +19,12 @@ public:
     virtual bool update();
     virtual void draw();
 
-	void renderGizmos(PxScene* physics_scene);
+    void renderGizmos(physx::PxScene* physics_scene);
 
-    Renderer* m_renderer;
+    std::unique_ptr<PhysicsScene> m_pPhysicsScene;
+    std::unique_ptr<Renderer> m_pRenderer;
     FlyCamera m_camera;
-    float m_delta_time;
+    float m_leftFrameTime;
 };
 
 
