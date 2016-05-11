@@ -33,7 +33,7 @@ public:
 
     void Draw(glm::vec3 position) const override
     {
-        Gizmos::addSphere(position, m_radius, 10, 10, glm::vec4(1, 0, 0, 1));
+        Gizmos::addSphereFilled(position, m_radius, 10, 10, glm::vec4(0.5f, 0, 0, 1));
     }
 
 private:
@@ -44,12 +44,18 @@ private:
 class AABB : public Shape
 {
 public:
-	AABB() : Shape(ID::AABB) {}
+	AABB( glm::vec3 extents ) : Shape(ID::AABB), m_extents(extents) {}
+
+	glm::vec3 GetMin() const { return -m_extents; }
+	glm::vec3 GetMax() const { return m_extents; }
 
     void Draw(glm::vec3 position) const override
     {
-
+		Gizmos::addAABBFilled(position, m_extents*2.f, glm::vec4(0, 0.5f, 0, 1));
     }
+
+private:
+	glm::vec3 m_extents;
 };
 
 
@@ -67,7 +73,7 @@ public:
 
     void Draw(glm::vec3 position) const override
     {
-        Gizmos::addAABBFilled(position, glm::vec3(10.f, 0.f, 10.f), glm::vec4(0.25f, 0.25f, 0.25f, 1));
+        Gizmos::addAABBFilled(position, glm::vec3(100.f, 0.f, 100.f), glm::vec4(0.25f, 0.25f, 0.25f, 1));
     }
 
 private:

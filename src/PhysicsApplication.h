@@ -24,7 +24,7 @@ public:
     std::unique_ptr<PhysicsScene> m_pPhysicsScene;
     std::unique_ptr<Renderer> m_pRenderer;
     FlyCamera m_camera;
-    float m_leftFrameTime;
+    float m_lastFrameTime;
 };
 
 
