@@ -18,6 +18,8 @@ public:
     void Update( float deltaTime, glm::vec3 gravity );
     void Draw() { m_pShape->Draw(m_position); };
 
+    Shape* GetShape() { return m_pShape.get(); }
+
 private:
     glm::vec3 m_position;
 

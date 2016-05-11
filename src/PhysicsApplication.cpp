@@ -40,6 +40,9 @@ bool PhysicsApplication::startup()
     auto pRigidBody = new RigidBody(1);
     auto pSphere1 = std::make_shared<PhysicsObject>( glm::vec3(0, 15, 0), pSphere, pRigidBody );
     m_pPhysicsScene->AddObject( pSphere1 );
+
+    auto pGroundPlane = std::make_shared<PhysicsObject>( glm::vec3(0), new Plane( glm::vec3(0,1,0), 0));
+    m_pPhysicsScene->AddObject(pGroundPlane);
 	
     m_leftFrameTime = (float)glfwGetTime();
 

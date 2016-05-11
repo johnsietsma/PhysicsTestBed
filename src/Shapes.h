@@ -41,8 +41,18 @@ class AABB : public Shape
 
 class Plane : public Shape
 {
+public:
+    Plane(glm::vec3 normal, float distance) :
+        m_normal(normal),
+        m_distance(distance)
+    {}
+
     void Draw(glm::vec3 position) override
     {
-
+        Gizmos::addAABB(position, glm::vec3(100.f, 0.f, 100.f), glm::vec4(1, 0, 0, 0));
     }
+
+private:
+    glm::vec3 m_normal;
+    float m_distance;
 };
