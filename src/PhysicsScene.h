@@ -4,7 +4,9 @@
 #include <memory>
 #include <vector>
 
+class Shape;
 class PhysicsObject;
+
 
 class PhysicsScene
 {
@@ -17,6 +19,8 @@ public:
     void AddObject( std::shared_ptr<PhysicsObject> pPhysicsObject);
 
 private:
+    void CheckCollisions();
+
     glm::vec3 m_gravity = DefaultGravity;
     std::vector< std::shared_ptr<PhysicsObject> > m_pPhysicsObjects;
 };
