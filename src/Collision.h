@@ -13,11 +13,23 @@ class Collision
 public:
 	static bool Detect(PhysicsObject* pObject1, PhysicsObject* pObject2);
 
-	static const std::array<CollisionDetectionFunction,9> CollisionDetectionFunctions;
 
+private:
+	static const std::array<CollisionDetectionFunction, 9> CollisionDetectionFunctions;
 
+	// Plane Collisions
+	static bool PlaneToSphere(PhysicsObject* pPlaneObject, PhysicsObject* pSphereObject);
+	static bool PlaneToAABB(PhysicsObject* pPlaneObject, PhysicsObject* pAABBObject);
+	static bool PlaneToPlane(PhysicsObject* pPlaneObject1, PhysicsObject* pPlaneObject2);
 
-    static bool SphereToSphere(PhysicsObject* pSphereObject1, PhysicsObject* pSphereObject2);
-    static bool SphereToPlane(PhysicsObject* pSphereObject, PhysicsObject* pPlaneObject);
-    static bool PlaneToSphere(PhysicsObject* pPlaneObject, PhysicsObject* pSphereObject);
+	// Sphere Collisions
+	static bool SphereToPlane(PhysicsObject* pSphereObject, PhysicsObject* pPlaneObject);
+	static bool SphereToSphere(PhysicsObject* pSphereObject1, PhysicsObject* pSphereObject2);
+	static bool SphereToAABB(PhysicsObject* pSphereObject, PhysicsObject* pAABBObject);
+
+	// AABB Collisions
+	static bool AABBToPlane(PhysicsObject* pAABBObject, PhysicsObject* pPlaneObject);
+	static bool AABBToSphere(PhysicsObject* pAABBObject, PhysicsObject* pSphereObject);
+	static bool AABBToAABB(PhysicsObject* pAABBObject1, PhysicsObject* pAABBObject2);
+
 };
