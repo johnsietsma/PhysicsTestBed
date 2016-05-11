@@ -15,10 +15,22 @@ public:
         m_pRigidBody(pRigidBody)
     {}
 
+	glm::vec3 GetPosition() const { return m_position; }
+	const Shape* GetShape() const { return m_pShape.get(); }
+	float GetMass() const;
+
     void Update( float deltaTime, glm::vec3 gravity );
     void Draw() { m_pShape->Draw(m_position); };
 
-    Shape* GetShape() { return m_pShape.get(); }
+	void Translate(glm::vec3 positionDelta) { m_position += positionDelta; }
+
+	
+	void Stop() {
+		if (m_pRigidBody != nullptr) m_pRigidBody->Stop();
+	}
+
+	template<typename T>
+	const T* GetShape() const { return static_cast<const T*>(GetShape()); }
 
 private:
     glm::vec3 m_position;

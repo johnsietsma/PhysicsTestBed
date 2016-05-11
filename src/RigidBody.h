@@ -9,7 +9,11 @@ public:
         m_mass(mass)
     {}
 
+	float GetMass() const { return m_mass;  }
+
     glm::vec3 CalculatePositionDelta(float deltaTime, glm::vec3 gravity);
+
+	void Stop() { m_velocity = glm::vec3(0); }
     void AddForce(glm::vec3 force);
 
 private:

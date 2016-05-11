@@ -5,11 +5,6 @@
 
 const glm::vec3 PhysicsScene::DefaultGravity(0.0f, -9.8f, 0.0f);
 
-CollisionDetectionFunction PhysicsScene::collisionDetectionFunctions[]
-{
-    nullptr /*PlaneToPlane*/,       Collision::PlaneToSphere,
-    Collision::SphereToPlane,       Collision::SphereToSphere
-};
 
 void PhysicsScene::AddObject(std::shared_ptr<PhysicsObject> pPhysicsObject)
 {
@@ -22,6 +17,8 @@ void PhysicsScene::Update(float deltaTime)
     {
         pPhysicsObject->Update(deltaTime, m_gravity);
     }
+
+	CheckCollisions();
 }
 
 void PhysicsScene::Draw()
@@ -38,7 +35,9 @@ void PhysicsScene::CheckCollisions()
     {
         for (auto it2 = std::next(it1); it2 != std::end(m_pPhysicsObjects); it2++)
         {
-            Collision::Detect((*it1)->GetShape(), (*it2)->GetShape());
+			if (Collision::Detect(it1->get(), it2->get())) {
+				//(*it1)->Stop();
+			}
         }
     }
 

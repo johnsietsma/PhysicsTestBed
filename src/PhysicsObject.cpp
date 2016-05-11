@@ -2,6 +2,20 @@
 
 #include "RigidBody.h"
 
+#include <limits>
+
+
+float PhysicsObject::GetMass() const
+{
+	if( m_pRigidBody == nullptr ) {
+		// Model a static object as an object with a very large mass
+		return std::numeric_limits<float>::max();
+	}
+	else {
+		return m_pRigidBody->GetMass();
+	}
+}
+
 void PhysicsObject::Update(float deltaTime, glm::vec3 gravity)
 {
     if (m_pRigidBody != nullptr) {
