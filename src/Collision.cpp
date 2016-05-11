@@ -16,6 +16,18 @@ const std::array<CollisionDetectionFunction,9> Collision::CollisionDetectionFunc
 };
 
 
+void Separate( PhysicsObject* pObject1, PhysicsObject* pObject2, float overlap, glm::vec3 normal )
+{
+	float totalMass = pObject1->GetMass() + pObject2->GetMass();
+	float massRatio1 = pObject1->GetMass() / totalMass;
+	float massRatio2 = pObject2->GetMass() / totalMass;
+
+	// Separate relative to the mass of the objects
+	glm::vec3 separationVector = normal * -overlap;
+	pObject1->Translate(separationVector * massRatio2);
+	pObject2->Translate(separationVector * massRatio1);
+}
+
 bool Collision::Detect(PhysicsObject* pObject1, PhysicsObject* pObject2)
 {
 	int shapeID1 = pObject1->GetShape()->GetID();
@@ -34,6 +46,14 @@ bool Collision::Detect(PhysicsObject* pObject1, PhysicsObject* pObject2)
 	return false;
 }
 
+
+// ---- Point Collisions ----
+bool Collision::PointToPlane(glm::vec3 point, const Plane* pPlane)
+{
+	return glm::dot(point, pPlane->GetNormal()) < 0;
+}
+
+
 // ----- Plane collisions -----
 bool Collision::PlaneToSphere(PhysicsObject* pPlaneObject, PhysicsObject* pSphereObject)
 {
@@ -51,15 +71,7 @@ bool Collision::PlaneToSphere(PhysicsObject* pPlaneObject, PhysicsObject* pSpher
 	float overlap = sphereDistanceAlongPlaneNormal - (pPlane->GetDistance() + pSphere->GetRadius());
 	if (overlap < 0)
 	{
-		float totalMass = (pSphereObject->GetMass() + pPlaneObject->GetMass());
-		float sphereMassRatio = pSphereObject->GetMass() / totalMass;
-		float planeMassRatio = pPlaneObject->GetMass() / totalMass;
-
-		// Separate relative to the mass of the objects
-		glm::vec3 separationVector = planeNormal * -overlap;
-		pSphereObject->Translate(separationVector * planeMassRatio);
-		pPlaneObject->Translate(separationVector * sphereMassRatio);
-
+		Separate(pSphereObject, pPlaneObject, overlap, planeNormal);
 		return true;
 	}
 
@@ -68,6 +80,23 @@ bool Collision::PlaneToSphere(PhysicsObject* pPlaneObject, PhysicsObject* pSpher
 
 bool Collision::PlaneToAABB(PhysicsObject* pPlaneObject, PhysicsObject* pAABBObject)
 {
+	const auto pPlane = pPlaneObject->GetShape<Plane>();
+	const auto pAABB = pAABBObject->GetShape<AABB>();
+
+	glm::vec3 AABBPos = pAABBObject->GetPosition();
+	glm::vec3 minPos = AABBPos + pAABB->GetMin();
+	glm::vec3 maxPos = AABBPos + pAABB->GetMax();
+
+	float minPointDistanceAlongPlaneNormal = glm::dot(minPos, pPlane->GetNormal());
+	float maxPointDistanceAlongPlaneNormal = glm::dot(maxPos, pPlane->GetNormal());
+
+	float overlap = std::min(minPointDistanceAlongPlaneNormal, maxPointDistanceAlongPlaneNormal);
+
+	if(overlap < 0 ) {
+		Separate(pPlaneObject, pAABBObject, overlap, pPlane->GetNormal());
+		return true;
+	}
+
 	return false;
 }
 

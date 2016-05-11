@@ -51,7 +51,7 @@ public:
 
     void Draw(glm::vec3 position) const override
     {
-		Gizmos::addAABBFilled(position, m_extents*2.f, glm::vec4(0, 0.5f, 0, 1));
+		Gizmos::addAABBFilled(position, m_extents, glm::vec4(0, 0.5f, 0, 1));
     }
 
 private:

@@ -1,7 +1,9 @@
 #pragma once
 
 #include <array>
+#include <glm/fwd.hpp>
 
+class Plane;
 class PhysicsObject;
 
 typedef bool(*CollisionDetectionFunction)(PhysicsObject* pShape1, PhysicsObject* pShape2);
@@ -16,6 +18,9 @@ public:
 
 private:
 	static const std::array<CollisionDetectionFunction, 9> CollisionDetectionFunctions;
+
+	// Point Collisions
+	static bool PointToPlane(glm::vec3 point, const Plane* pPlane);
 
 	// Plane Collisions
 	static bool PlaneToSphere(PhysicsObject* pPlaneObject, PhysicsObject* pSphereObject);
