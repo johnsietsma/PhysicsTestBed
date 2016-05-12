@@ -47,22 +47,22 @@ bool PhysicsApplication::startup()
 	// Add boxes around the edges
 	constexpr int TableSize = 30;
 	auto pBox1 = std::make_shared<PhysicsObject>(
-		glm::vec3( 0, 0.5f, TableSize/2 ),			// Position
+		glm::vec3( 0, 0.5f, (TableSize/2)+1 ),		// Position
 		new AABB( glm::vec3(TableSize/2, 1, 1) )	// Extents
 		);
 
 	auto pBox2 = std::make_shared<PhysicsObject>(
-		glm::vec3(0, 0.5f, -TableSize/2 ),			// Position
+		glm::vec3(0, 0.5f, (-TableSize/2)-1 ),		// Position
 		new AABB(glm::vec3(TableSize / 2, 1, 1))	// Extents
 		);
 
 	auto pBox3 = std::make_shared<PhysicsObject>(
-		glm::vec3(TableSize/2, 0.5f, 0),			// Position
+		glm::vec3((TableSize/2)+1, 0.5f, 0),		// Position
 		new AABB(glm::vec3(1, 1, TableSize / 2))	// Extents
 		);
 
 	auto pBox4 = std::make_shared<PhysicsObject>(
-		glm::vec3(-TableSize/2, 0.5f, 0),			// Position
+		glm::vec3((-TableSize/2)-1, 0.5f, 0),		// Position
 		new AABB(glm::vec3(1, 1, TableSize / 2))	// Extents
 		);
 
@@ -80,13 +80,20 @@ bool PhysicsApplication::startup()
 		);
 	m_pPhysicsScene->AddObject(pAABB1);
 
+    auto pAABB2 = std::make_shared<PhysicsObject>(
+        glm::vec3(0, 10, 0),				// Position
+        new AABB(glm::vec3(1, 1, 1)),   // AABB(extents)
+        new RigidBody(1)				// Rigidbody(mass)
+        );
+    m_pPhysicsScene->AddObject(pAABB2);
+
     // Add Sphere
     auto pSphere1 = std::make_shared<PhysicsObject>(
         glm::vec3(0, 10, 0),	 // Position
         new Sphere(1),     // Sphere(radius)
         new RigidBody(1)   // Rigidbody(mass)
         );
-    m_pPhysicsScene->AddObject(pSphere1);
+    //m_pPhysicsScene->AddObject(pSphere1);
 
 
 

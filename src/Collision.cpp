@@ -85,8 +85,8 @@ bool Collision::PlaneToAABB(PhysicsObject* pPlaneObject, PhysicsObject* pAABBObj
 	const auto pAABB = pAABBObject->GetShape<AABB>();
 
 	glm::vec3 AABBPos = pAABBObject->GetPosition();
-	glm::vec3 minPos = AABBPos + pAABB->GetMin();
-	glm::vec3 maxPos = AABBPos + pAABB->GetMax();
+	glm::vec3 minPos = AABBPos - pAABB->GetExtents();
+	glm::vec3 maxPos = AABBPos + pAABB->GetExtents();
 
 	float minPointDistanceAlongPlaneNormal = glm::dot(minPos, pPlane->GetNormal());
 	float maxPointDistanceAlongPlaneNormal = glm::dot(maxPos, pPlane->GetNormal());
@@ -128,8 +128,8 @@ bool Collision::SphereToAABB(PhysicsObject* pSphereObject, PhysicsObject* pAABBO
     const auto pSphere = pSphereObject->GetShape<Sphere>();
     const auto pAABB = pAABBObject->GetShape<AABB>();
 
-    glm::vec3 minPos = pAABB->GetMin();
-    glm::vec3 maxPos = pAABB->GetMax();
+    glm::vec3 minPos = -pAABB->GetExtents();
+    glm::vec3 maxPos = pAABB->GetExtents();
 
     glm::vec3 clampedPoint(0);
     glm::vec3 distance = pSphereObject->GetPosition() - pAABBObject->GetPosition();
@@ -181,5 +181,36 @@ bool Collision::AABBToSphere(PhysicsObject* pAABBObject, PhysicsObject* pSphereO
 
 bool Collision::AABBToAABB(PhysicsObject* pAABBObject1, PhysicsObject* pAABBObject2)
 {
+    const auto pAABB1 = pAABBObject1->GetShape<AABB>();
+    const auto pAABB2 = pAABBObject2->GetShape<AABB>();
+
+    glm::vec3 box1Pos = pAABBObject1->GetPosition();
+    glm::vec3 box1Extents = pAABB1->GetExtents();
+
+    glm::vec3 box2Pos = pAABBObject2->GetPosition();
+    glm::vec3 box2Extents = pAABB2->GetExtents();
+
+    float xOverlap = std::abs(box2Pos.x - box1Pos.x) - (box1Extents.x + box2Extents.x);
+    float yOverlap = std::abs(box2Pos.y - box1Pos.y) - (box1Extents.y + box2Extents.y);
+    float zOverlap = std::abs(box2Pos.z - box1Pos.z) - (box1Extents.z + box2Extents.z);
+
+
+    if (xOverlap <= 0 && yOverlap <= 0 && zOverlap <= 0)
+    {
+        float minOverlap = xOverlap;
+        minOverlap = yOverlap < 0 ? std::max(minOverlap, yOverlap) : minOverlap;
+        minOverlap = zOverlap < 0 ? std::max(minOverlap, zOverlap) : minOverlap;
+        
+        glm::vec3 separationNormal(0);
+
+        if (xOverlap == minOverlap) separationNormal.x = 1;
+        else if (yOverlap == minOverlap) separationNormal.y = 1;
+        else if (zOverlap == minOverlap) separationNormal.z = 1;
+
+        Separate(pAABBObject1, pAABBObject2, -minOverlap, separationNormal);
+
+        return true;
+    }
+
 	return false;
 }

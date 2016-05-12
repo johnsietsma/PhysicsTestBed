@@ -46,8 +46,7 @@ class AABB : public Shape
 public:
 	AABB( glm::vec3 extents ) : Shape(ID::AABB), m_extents(extents) {}
 
-	glm::vec3 GetMin() const { return -m_extents; }
-	glm::vec3 GetMax() const { return m_extents; }
+	glm::vec3 GetExtents() const { return m_extents; }
 
     void Draw(glm::vec3 position) const override
     {
