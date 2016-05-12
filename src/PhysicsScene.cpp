@@ -13,9 +13,11 @@ void PhysicsScene::AddObject(std::shared_ptr<PhysicsObject> pPhysicsObject)
 
 void PhysicsScene::Update(float deltaTime)
 {
+	const float DampingCoeffecient = 0.1f;
+
 	for (auto& pPhysicsObject : m_pPhysicsObjects)
 	{
-		//pPhysicsObject->AddForce(DampeningCoeffecient * -pPhysicsObject->GetVelocity());
+		pPhysicsObject->AddForce(DampingCoeffecient * -pPhysicsObject->GetVelocity());
 	}
 
     for (auto& pPhysicsObject : m_pPhysicsObjects)

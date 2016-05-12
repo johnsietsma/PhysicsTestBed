@@ -23,6 +23,4 @@ private:
 
     glm::vec3 m_gravity = DefaultGravity;
     std::vector< std::shared_ptr<PhysicsObject> > m_pPhysicsObjects;
-
-	static constexpr float DampeningCoeffecient = 0.000001f;
 };
