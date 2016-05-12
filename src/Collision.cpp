@@ -155,29 +155,23 @@ bool Collision::SphereToAABB(PhysicsObject* pSphereObject, PhysicsObject* pAABBO
     glm::vec3 minPos = -pAABB->GetExtents();
     glm::vec3 maxPos = pAABB->GetExtents();
 
-    glm::vec3 clampedPoint(0);
     glm::vec3 distance = pSphereObject->GetPosition() - pAABBObject->GetPosition();
+	glm::vec3 clampedPoint = distance;
 
     if (distance.x < minPos.x)
         clampedPoint.x = minPos.x;
     else if (distance.x > maxPos.x)
         clampedPoint.x = maxPos.x;
-    else
-        clampedPoint.x = distance.x;
 
     if (distance.y < minPos.y)
         clampedPoint.y = minPos.y;
     else if (distance.y > maxPos.y)
         clampedPoint.y = maxPos.y;
-    else
-        clampedPoint.y = distance.y;
 
     if (distance.z < minPos.z)
         clampedPoint.z = minPos.z;
     else if (distance.z > maxPos.z)
         clampedPoint.z = maxPos.z;
-    else
-        clampedPoint.z = distance.z;
 
     glm::vec3 clampedDistance = distance - clampedPoint;
 
@@ -226,9 +220,9 @@ bool Collision::AABBToAABB(PhysicsObject* pAABBObject1, PhysicsObject* pAABBObje
         
         glm::vec3 separationNormal(0);
 
-        if (xOverlap == minOverlap) separationNormal.x = std::signbit(box2Pos.x - box1Pos.x) ? -1 : 1;
-        else if (yOverlap == minOverlap) separationNormal.y = std::signbit(box2Pos.y - box1Pos.y) ? -1 : 1;
-        else if (zOverlap == minOverlap) separationNormal.z = std::signbit(box2Pos.z - box1Pos.z) ? -1 : 1;
+        if (xOverlap == minOverlap) separationNormal.x = std::signbit(box2Pos.x - box1Pos.x) ? -1.f : 1.f;
+        else if (yOverlap == minOverlap) separationNormal.y = std::signbit(box2Pos.y - box1Pos.y) ? -1.f : 1.f;
+        else if (zOverlap == minOverlap) separationNormal.z = std::signbit(box2Pos.z - box1Pos.z) ? -1.f : 1.f;
 
         Response(pAABBObject1, pAABBObject2, -minOverlap, separationNormal);
 
