@@ -23,8 +23,8 @@ void Separate( PhysicsObject* pObject1, PhysicsObject* pObject2, float overlap, 
 	float massRatio2 = pObject2->GetMass() / totalMass;
 
 	// Separate relative to the mass of the objects
-	glm::vec3 separationVector = normal * -overlap;
-	pObject1->Translate(separationVector * massRatio2);
+	glm::vec3 separationVector = normal * overlap;
+	pObject1->Translate(-separationVector * massRatio2);
 	pObject2->Translate(separationVector * massRatio1);
 }
 
@@ -69,9 +69,10 @@ bool Collision::PlaneToSphere(PhysicsObject* pPlaneObject, PhysicsObject* pSpher
 	// If the plane distane and sphere radius are bigger then the distance along the normal
 	//   then we overlap.
 	float overlap = sphereDistanceAlongPlaneNormal - (pPlane->GetDistance() + pSphere->GetRadius());
-	if (overlap < 0)
+    overlap *= -1;
+	if (overlap > 0)
 	{
-		Separate(pSphereObject, pPlaneObject, overlap, planeNormal);
+		Separate(pPlaneObject, pSphereObject, overlap, planeNormal);
 		return true;
 	}
 
@@ -90,9 +91,9 @@ bool Collision::PlaneToAABB(PhysicsObject* pPlaneObject, PhysicsObject* pAABBObj
 	float minPointDistanceAlongPlaneNormal = glm::dot(minPos, pPlane->GetNormal());
 	float maxPointDistanceAlongPlaneNormal = glm::dot(maxPos, pPlane->GetNormal());
 
-	float overlap = std::min(minPointDistanceAlongPlaneNormal, maxPointDistanceAlongPlaneNormal);
+	float overlap = -std::min(minPointDistanceAlongPlaneNormal, maxPointDistanceAlongPlaneNormal);
 
-	if(overlap < 0 ) {
+	if(overlap > 0 ) {
 		Separate(pPlaneObject, pAABBObject, overlap, pPlane->GetNormal());
 		return true;
 	}
@@ -122,8 +123,48 @@ bool Collision::SphereToSphere(PhysicsObject* pSphereObject1, PhysicsObject* pSp
 	return radiusDistance < centerDistance;
 }
 
-bool Collision::SphereToAABB(PhysicsObject* pSphereObject1, PhysicsObject* pAABBObject2)
+bool Collision::SphereToAABB(PhysicsObject* pSphereObject, PhysicsObject* pAABBObject)
 {
+    const auto pSphere = pSphereObject->GetShape<Sphere>();
+    const auto pAABB = pAABBObject->GetShape<AABB>();
+
+    glm::vec3 minPos = pAABB->GetMin();
+    glm::vec3 maxPos = pAABB->GetMax();
+
+    glm::vec3 clampedPoint(0);
+    glm::vec3 distance = pSphereObject->GetPosition() - pAABBObject->GetPosition();
+
+    if (distance.x < minPos.x)
+        clampedPoint.x = minPos.x;
+    else if (distance.x > maxPos.x)
+        clampedPoint.x = maxPos.x;
+    else
+        clampedPoint.x = distance.x;
+
+    if (distance.y < minPos.y)
+        clampedPoint.y = minPos.y;
+    else if (distance.y > maxPos.y)
+        clampedPoint.y = maxPos.y;
+    else
+        clampedPoint.y = distance.y;
+
+    if (distance.z < minPos.z)
+        clampedPoint.z = minPos.z;
+    else if (distance.z > maxPos.z)
+        clampedPoint.z = maxPos.z;
+    else
+        clampedPoint.z = distance.z;
+
+    glm::vec3 clampedDistance = distance - clampedPoint;
+
+    float overlap = glm::length(clampedDistance) - pSphere->GetRadius();
+    overlap *= -1;
+    if (overlap > 0)
+    {
+        Separate(pAABBObject, pSphereObject, overlap, glm::normalize(clampedDistance));
+        return true;
+    }
+
 	return false;
 }
 
