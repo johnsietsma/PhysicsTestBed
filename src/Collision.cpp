@@ -207,9 +207,12 @@ bool Collision::AABBToAABB(PhysicsObject* pAABBObject1, PhysicsObject* pAABBObje
     glm::vec3 box2Pos = pAABBObject2->GetPosition();
     glm::vec3 box2Extents = pAABB2->GetExtents();
 
-    float xOverlap = std::abs(box2Pos.x - box1Pos.x) - (box1Extents.x + box2Extents.x);
-    float yOverlap = std::abs(box2Pos.y - box1Pos.y) - (box1Extents.y + box2Extents.y);
-    float zOverlap = std::abs(box2Pos.z - box1Pos.z) - (box1Extents.z + box2Extents.z);
+	glm::vec3 boxDelta = box2Pos - box1Pos;
+	glm::vec3 boxExtentsCombined = box1Extents + box2Extents;
+
+    float xOverlap = std::abs(boxDelta.x) - boxExtentsCombined.x;
+    float yOverlap = std::abs(boxDelta.y) - boxExtentsCombined.y;
+    float zOverlap = std::abs(boxDelta.z) - boxExtentsCombined.z;
 
 
     if (xOverlap <= 0 && yOverlap <= 0 && zOverlap <= 0)
@@ -220,9 +223,9 @@ bool Collision::AABBToAABB(PhysicsObject* pAABBObject1, PhysicsObject* pAABBObje
         
         glm::vec3 separationNormal(0);
 
-        if (xOverlap == minOverlap) separationNormal.x = std::signbit(box2Pos.x - box1Pos.x) ? -1.f : 1.f;
-        else if (yOverlap == minOverlap) separationNormal.y = std::signbit(box2Pos.y - box1Pos.y) ? -1.f : 1.f;
-        else if (zOverlap == minOverlap) separationNormal.z = std::signbit(box2Pos.z - box1Pos.z) ? -1.f : 1.f;
+        if (xOverlap == minOverlap) separationNormal.x = std::signbit(boxDelta.x) ? -1.f : 1.f;
+        else if (yOverlap == minOverlap) separationNormal.y = std::signbit(boxDelta.y) ? -1.f : 1.f;
+        else if (zOverlap == minOverlap) separationNormal.z = std::signbit(boxDelta.z) ? -1.f : 1.f;
 
         Response(pAABBObject1, pAABBObject2, -minOverlap, separationNormal);
 
