@@ -5,6 +5,12 @@
 #include <limits>
 
 
+glm::vec3 PhysicsObject::GetVelocity() const
+{
+    return m_pRigidBody == nullptr ? glm::vec3(0) : m_pRigidBody->GetVelocity();
+}
+
+
 float PhysicsObject::GetMass() const
 {
 	if( m_pRigidBody == nullptr ) {

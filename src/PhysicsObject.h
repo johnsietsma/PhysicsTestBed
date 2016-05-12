@@ -15,7 +15,8 @@ public:
         m_pRigidBody(pRigidBody)
     {}
 
-	glm::vec3 GetPosition() const { return m_position; }
+    glm::vec3 GetPosition() const { return m_position; }
+    glm::vec3 GetVelocity() const;
 	const Shape* GetShape() const { return m_pShape.get(); }
 	float GetMass() const;
 
@@ -23,6 +24,7 @@ public:
     void Draw() { m_pShape->Draw(m_position); };
 
 	void Translate(glm::vec3 positionDelta) { m_position += positionDelta; }
+    void AddVelocity(glm::vec3 vel) { if (m_pRigidBody != nullptr) m_pRigidBody->AddVelocity(vel);  }
 
 	
 	void Stop() {

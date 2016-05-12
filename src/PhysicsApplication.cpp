@@ -66,15 +66,15 @@ bool PhysicsApplication::startup()
 		new AABB(glm::vec3(1, 1, TableSize / 2))	// Extents
 		);
 
-    m_pPhysicsScene->AddObject(pBox1);
-    m_pPhysicsScene->AddObject(pBox2);
-    m_pPhysicsScene->AddObject(pBox3);
-	m_pPhysicsScene->AddObject(pBox4);
+    //m_pPhysicsScene->AddObject(pBox1);
+    //m_pPhysicsScene->AddObject(pBox2);
+    //m_pPhysicsScene->AddObject(pBox3);
+	//m_pPhysicsScene->AddObject(pBox4);
 
 
 	// Add AABB
 	auto pAABB1 = std::make_shared<PhysicsObject>(
-		glm::vec3(0, 5, 0),				// Position
+		glm::vec3(0, 1, 0),				// Position
 		new AABB( glm::vec3(1,1,1) ),   // AABB(extents)
 		new RigidBody(1)				// Rigidbody(mass)
 		);

@@ -28,6 +28,45 @@ void Separate( PhysicsObject* pObject1, PhysicsObject* pObject2, float overlap, 
 	pObject2->Translate(separationVector * massRatio1);
 }
 
+void Response( PhysicsObject* pObject1, PhysicsObject* pObject2, glm::vec3 normal )
+{
+    // e = 1 // prefectly elastic
+    // impulse is only along collision normal
+
+    // eq 3
+    // vRel2.N = -evRel1.N
+
+    // eq 4
+    // vA2 = vA1 + (j/mA) * N
+    // vB2 = vB1 - (j/mB) * N
+
+    // eq 6
+    // Substitute eq 3 into 4, solve for j (impulse force)
+    // j = (-(1+e)vRel.N) / N.N(1/mA + 1/mB)
+    // j = -2vRel.N / N.N(1/mA + 1/mB) when e==1
+
+    const float coefficientOfRestitution = 1;
+
+    glm::vec3 velObj1 = pObject1->GetVelocity();
+    glm::vec3 velObj2 = pObject2->GetVelocity();
+    glm::vec3 velRel = velObj2 - velObj1;
+
+    float mass1 = pObject1->GetMass();
+    float mass2 = pObject2->GetMass();
+
+    // eq 6
+    float impulseNumerator = -(1 + coefficientOfRestitution) * glm::dot(velRel, normal);
+    float impulseDenominator = glm::dot( normal, normal * (1/mass1 + 1/mass2) );
+    float impulseForce = impulseNumerator / impulseDenominator;
+
+    glm::vec3 vel1Change = (impulseForce / mass1) * normal;
+    glm::vec3 vel2Change = (impulseForce / mass2) * normal;
+
+    pObject1->AddVelocity(vel1Change);
+    pObject2->AddVelocity(-vel2Change);
+
+}
+
 bool Collision::Detect(PhysicsObject* pObject1, PhysicsObject* pObject2)
 {
 	int shapeID1 = pObject1->GetShape()->GetID();
@@ -95,6 +134,8 @@ bool Collision::PlaneToAABB(PhysicsObject* pPlaneObject, PhysicsObject* pAABBObj
 
 	if(overlap > 0 ) {
 		Separate(pPlaneObject, pAABBObject, overlap, pPlane->GetNormal());
+        pPlaneObject->Stop();
+        pAABBObject->Stop();
 		return true;
 	}
 
@@ -103,6 +144,7 @@ bool Collision::PlaneToAABB(PhysicsObject* pPlaneObject, PhysicsObject* pAABBObj
 
 bool Collision::PlaneToPlane(PhysicsObject* pPlaneObject1, PhysicsObject* pPlaneObject2)
 {
+    // Not going to implement this right now.
 	return false;
 }
 
@@ -208,6 +250,7 @@ bool Collision::AABBToAABB(PhysicsObject* pAABBObject1, PhysicsObject* pAABBObje
         else if (zOverlap == minOverlap) separationNormal.z = 1;
 
         Separate(pAABBObject1, pAABBObject2, -minOverlap, separationNormal);
+        Response(pAABBObject1, pAABBObject2, separationNormal);
 
         return true;
     }
