@@ -11,7 +11,9 @@
 #include "glm/ext.hpp"
 #include "glm/gtc/quaternion.hpp"
 
+#include <functional>
 #include <PxPhysicsAPI.h>
+#include <random>
 
 using namespace physx;
 
@@ -30,7 +32,7 @@ bool PhysicsApplication::startup()
     Gizmos::create();
 
     m_camera = FlyCamera(1280.0f / 720.0f, 10.0f);
-    m_camera.setLookAt(vec3(10, 10, 10), vec3(0), vec3(0, 1, 0));
+    m_camera.setLookAt(vec3(50, 50, 50), vec3(0), vec3(0, 1, 0));
     m_camera.sensitivity = 3;
 
     m_pRenderer = std::make_unique<Renderer>();
@@ -45,57 +47,57 @@ bool PhysicsApplication::startup()
 	m_pPhysicsScene->AddObject(pGroundPlane);
 
 	// Add boxes around the edges
-	constexpr int TableSize = 30;
+	constexpr int TableSize = 60;
+	constexpr int BorderHeight = 15;
 	auto pBox1 = std::make_shared<PhysicsObject>(
 		glm::vec3( 0, 0.5f, (TableSize/2)+1 ),		// Position
-		new AABB( glm::vec3(TableSize/2, 1, 1) )	// Extents
+		new AABB( glm::vec3(TableSize/2, BorderHeight, 1) )	// Extents
 		);
 
 	auto pBox2 = std::make_shared<PhysicsObject>(
 		glm::vec3(0, 0.5f, (-TableSize/2)-1 ),		// Position
-		new AABB(glm::vec3(TableSize / 2, 1, 1))	// Extents
+		new AABB(glm::vec3(TableSize / 2, BorderHeight, 1))	// Extents
 		);
 
 	auto pBox3 = std::make_shared<PhysicsObject>(
 		glm::vec3((TableSize/2)+1, 0.5f, 0),		// Position
-		new AABB(glm::vec3(1, 1, TableSize / 2))	// Extents
+		new AABB(glm::vec3(1, BorderHeight, TableSize / 2))	// Extents
 		);
 
 	auto pBox4 = std::make_shared<PhysicsObject>(
 		glm::vec3((-TableSize/2)-1, 0.5f, 0),		// Position
-		new AABB(glm::vec3(1, 1, TableSize / 2))	// Extents
+		new AABB(glm::vec3(1, BorderHeight, TableSize / 2))	// Extents
 		);
 
-    //m_pPhysicsScene->AddObject(pBox1);
-    //m_pPhysicsScene->AddObject(pBox2);
-    //m_pPhysicsScene->AddObject(pBox3);
-	//m_pPhysicsScene->AddObject(pBox4);
+    m_pPhysicsScene->AddObject(pBox1);
+    m_pPhysicsScene->AddObject(pBox2);
+    m_pPhysicsScene->AddObject(pBox3);
+	m_pPhysicsScene->AddObject(pBox4);
 
+	std::default_random_engine generator;
+	std::uniform_real_distribution<float> distribution(-3, 3);
+	auto randVel = std::bind(distribution,generator);
 
-	// Add AABB
-	auto pAABB1 = std::make_shared<PhysicsObject>(
-		glm::vec3(0, 1, 0),				// Position
-		new AABB( glm::vec3(1,1,1) ),   // AABB(extents)
-		new RigidBody(1)				// Rigidbody(mass)
-		);
-	m_pPhysicsScene->AddObject(pAABB1);
+	for (int i = 0; i < 20; i++) {
+		const float spacing = 2;
+		// Add Sphere
+		auto pSphere = std::make_shared<PhysicsObject>(
+			glm::vec3(-20+i*spacing, 2, -20+i*spacing),			// Position
+			new Sphere(1),										// Sphere(radius)
+			new RigidBody(1, glm::vec3(randVel(),0,randVel()))	// Rigidbody(mass, vel)
+			);
+		m_pPhysicsScene->AddObject(pSphere);
+	}
 
-    auto pAABB2 = std::make_shared<PhysicsObject>(
-        glm::vec3(0, 10, 0),				// Position
-        new AABB(glm::vec3(1, 1, 1)),   // AABB(extents)
-        new RigidBody(1)				// Rigidbody(mass)
-        );
-    m_pPhysicsScene->AddObject(pAABB2);
-
-    // Add Sphere
-    auto pSphere1 = std::make_shared<PhysicsObject>(
-        glm::vec3(0, 10, 0),	 // Position
-        new Sphere(1),     // Sphere(radius)
-        new RigidBody(1)   // Rigidbody(mass)
-        );
-    //m_pPhysicsScene->AddObject(pSphere1);
-
-
+	for (int i = 0; i < 20; i++) {
+		const float spacing = 2;
+		auto pAABB = std::make_shared<PhysicsObject>(
+			glm::vec3(-20 + i*spacing, 5 + i, -20 + i*spacing),	// Position
+			new AABB(glm::vec3(1, 1, 1)),						// AABB(extents)
+			new RigidBody(1, glm::vec3(randVel(),0,randVel()))	// Rigidbody(mass,vel)
+			);
+		m_pPhysicsScene->AddObject(pAABB);
+	}
 
     m_lastFrameTime = (float)glfwGetTime();
 

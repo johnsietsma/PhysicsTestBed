@@ -13,6 +13,11 @@ void PhysicsScene::AddObject(std::shared_ptr<PhysicsObject> pPhysicsObject)
 
 void PhysicsScene::Update(float deltaTime)
 {
+	for (auto& pPhysicsObject : m_pPhysicsObjects)
+	{
+		//pPhysicsObject->AddForce(DampeningCoeffecient * -pPhysicsObject->GetVelocity());
+	}
+
     for (auto& pPhysicsObject : m_pPhysicsObjects)
     {
         pPhysicsObject->Update(deltaTime, m_gravity);
@@ -35,9 +40,7 @@ void PhysicsScene::CheckCollisions()
     {
         for (auto it2 = std::next(it1); it2 != std::end(m_pPhysicsObjects); it2++)
         {
-			if (Collision::Detect(it1->get(), it2->get())) {
-				//(*it1)->Stop();
-			}
+			Collision::Detect(it1->get(), it2->get());
         }
     }
 

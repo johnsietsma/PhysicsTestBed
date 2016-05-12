@@ -10,6 +10,17 @@ glm::vec3 RigidBody::CalculatePositionDelta(float deltaTime, glm::vec3 gravity)
     return positionDelta;
 }
 
+void RigidBody::AddVelocity(glm::vec3 velocity) 
+{ 
+	m_velocity += velocity; 
+}
+
+void RigidBody::AddMomentum(glm::vec3 momentum) 
+{ 
+	AddVelocity( momentum / m_mass );
+}
+
+
 void RigidBody::AddForce(glm::vec3 force)
 {
     m_force += force;

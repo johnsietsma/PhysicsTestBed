@@ -16,56 +16,34 @@ const std::array<CollisionDetectionFunction,9> Collision::CollisionDetectionFunc
 };
 
 
+
 void Separate( PhysicsObject* pObject1, PhysicsObject* pObject2, float overlap, glm::vec3 normal )
 {
 	float totalMass = pObject1->GetMass() + pObject2->GetMass();
 	float massRatio1 = pObject1->GetMass() / totalMass;
 	float massRatio2 = pObject2->GetMass() / totalMass;
 
-	// Separate relative to the mass of the objects
+	// Separation relative to the mass of the objects
 	glm::vec3 separationVector = normal * overlap;
 	pObject1->Translate(-separationVector * massRatio2);
 	pObject2->Translate(separationVector * massRatio1);
 }
 
-void Response( PhysicsObject* pObject1, PhysicsObject* pObject2, glm::vec3 normal )
+void Response( PhysicsObject* pObject1, PhysicsObject* pObject2, float overlap, glm::vec3 normal )
 {
-    // e = 1 // prefectly elastic
-    // impulse is only along collision normal
+	Separate(pObject1, pObject2, overlap, normal);
 
-    // eq 3
-    // vRel2.N = -evRel1.N
+	const float coefficientOfRestitution = 0.9f;
 
-    // eq 4
-    // vA2 = vA1 + (j/mA) * N
-    // vB2 = vB1 - (j/mB) * N
+	// Calculate the momentum along the collision normal
+	float impulse1 = -(1 + coefficientOfRestitution) * glm::dot(pObject1->GetMomentum(), normal);
+	float impulse2 = -(1 + coefficientOfRestitution) * glm::dot(pObject2->GetMomentum(), normal);
 
-    // eq 6
-    // Substitute eq 3 into 4, solve for j (impulse force)
-    // j = (-(1+e)vRel.N) / N.N(1/mA + 1/mB)
-    // j = -2vRel.N / N.N(1/mA + 1/mB) when e==1
-
-    const float coefficientOfRestitution = 1;
-
-    glm::vec3 velObj1 = pObject1->GetVelocity();
-    glm::vec3 velObj2 = pObject2->GetVelocity();
-    glm::vec3 velRel = velObj2 - velObj1;
-
-    float mass1 = pObject1->GetMass();
-    float mass2 = pObject2->GetMass();
-
-    // eq 6
-    float impulseNumerator = -(1 + coefficientOfRestitution) * glm::dot(velRel, normal);
-    float impulseDenominator = glm::dot( normal, normal * (1/mass1 + 1/mass2) );
-    float impulseForce = impulseNumerator / impulseDenominator;
-
-    glm::vec3 vel1Change = (impulseForce / mass1) * normal;
-    glm::vec3 vel2Change = (impulseForce / mass2) * normal;
-
-    pObject1->AddVelocity(vel1Change);
-    pObject2->AddVelocity(-vel2Change);
-
+	// Apply the change in momentum
+    pObject1->AddMomentum(impulse1 * normal);
+    pObject2->AddMomentum(impulse2 * normal);
 }
+
 
 bool Collision::Detect(PhysicsObject* pObject1, PhysicsObject* pObject2)
 {
@@ -108,10 +86,9 @@ bool Collision::PlaneToSphere(PhysicsObject* pPlaneObject, PhysicsObject* pSpher
 	// If the plane distane and sphere radius are bigger then the distance along the normal
 	//   then we overlap.
 	float overlap = sphereDistanceAlongPlaneNormal - (pPlane->GetDistance() + pSphere->GetRadius());
-    overlap *= -1;
-	if (overlap > 0)
+	if (overlap < 0)
 	{
-		Separate(pPlaneObject, pSphereObject, overlap, planeNormal);
+		Response(pPlaneObject, pSphereObject, -overlap, planeNormal);
 		return true;
 	}
 
@@ -130,12 +107,10 @@ bool Collision::PlaneToAABB(PhysicsObject* pPlaneObject, PhysicsObject* pAABBObj
 	float minPointDistanceAlongPlaneNormal = glm::dot(minPos, pPlane->GetNormal());
 	float maxPointDistanceAlongPlaneNormal = glm::dot(maxPos, pPlane->GetNormal());
 
-	float overlap = -std::min(minPointDistanceAlongPlaneNormal, maxPointDistanceAlongPlaneNormal);
+	float overlap = std::min(minPointDistanceAlongPlaneNormal, maxPointDistanceAlongPlaneNormal);
 
-	if(overlap > 0 ) {
-		Separate(pPlaneObject, pAABBObject, overlap, pPlane->GetNormal());
-        pPlaneObject->Stop();
-        pAABBObject->Stop();
+	if(overlap < 0 ) {
+		Response(pPlaneObject, pAABBObject, -overlap, pPlane->GetNormal());
 		return true;
 	}
 
@@ -157,12 +132,19 @@ bool Collision::SphereToPlane(PhysicsObject* pSphereObject, PhysicsObject* pPlan
 bool Collision::SphereToSphere(PhysicsObject* pSphereObject1, PhysicsObject* pSphereObject2)
 {
 	const auto pSphere1 = pSphereObject1->GetShape<Sphere>();
-	const auto pSphere2 = pSphereObject1->GetShape<Sphere>();
+	const auto pSphere2 = pSphereObject2->GetShape<Sphere>();
 
-	float centerDistance = glm::distance(pSphereObject1->GetPosition(), pSphereObject2->GetPosition());
+	glm::vec3 directionVector = pSphereObject2->GetPosition() - pSphereObject1->GetPosition();
+	float centerDistance = glm::length(directionVector);
 	float radiusDistance = pSphere1->GetRadius() + pSphere2->GetRadius();
 
-	return radiusDistance < centerDistance;
+	float overlap = centerDistance - radiusDistance;
+	if (overlap < 0) {
+		Response(pSphereObject1, pSphereObject2, -overlap, glm::normalize(directionVector) );
+		return true;
+	}
+
+	return false;
 }
 
 bool Collision::SphereToAABB(PhysicsObject* pSphereObject, PhysicsObject* pAABBObject)
@@ -200,10 +182,9 @@ bool Collision::SphereToAABB(PhysicsObject* pSphereObject, PhysicsObject* pAABBO
     glm::vec3 clampedDistance = distance - clampedPoint;
 
     float overlap = glm::length(clampedDistance) - pSphere->GetRadius();
-    overlap *= -1;
-    if (overlap > 0)
+    if (overlap < 0)
     {
-        Separate(pAABBObject, pSphereObject, overlap, glm::normalize(clampedDistance));
+        Response(pAABBObject, pSphereObject, -overlap, glm::normalize(clampedDistance));
         return true;
     }
 
@@ -245,12 +226,11 @@ bool Collision::AABBToAABB(PhysicsObject* pAABBObject1, PhysicsObject* pAABBObje
         
         glm::vec3 separationNormal(0);
 
-        if (xOverlap == minOverlap) separationNormal.x = 1;
-        else if (yOverlap == minOverlap) separationNormal.y = 1;
-        else if (zOverlap == minOverlap) separationNormal.z = 1;
+        if (xOverlap == minOverlap) separationNormal.x = std::signbit(box2Pos.x - box1Pos.x) ? -1 : 1;
+        else if (yOverlap == minOverlap) separationNormal.y = std::signbit(box2Pos.y - box1Pos.y) ? -1 : 1;
+        else if (zOverlap == minOverlap) separationNormal.z = std::signbit(box2Pos.z - box1Pos.z) ? -1 : 1;
 
-        Separate(pAABBObject1, pAABBObject2, -minOverlap, separationNormal);
-        Response(pAABBObject1, pAABBObject2, separationNormal);
+        Response(pAABBObject1, pAABBObject2, -minOverlap, separationNormal);
 
         return true;
     }

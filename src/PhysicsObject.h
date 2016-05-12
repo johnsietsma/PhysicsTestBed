@@ -19,14 +19,17 @@ public:
     glm::vec3 GetVelocity() const;
 	const Shape* GetShape() const { return m_pShape.get(); }
 	float GetMass() const;
+	glm::vec3 GetMomentum() const { return GetMass() * GetVelocity(); }
+
+	void Translate(glm::vec3 positionDelta);
+	void AddVelocity(glm::vec3 velocity) { if (m_pRigidBody != nullptr) m_pRigidBody->AddVelocity(velocity); }
+	void AddMomentum(glm::vec3 momentum) { if (m_pRigidBody != nullptr) m_pRigidBody->AddMomentum(momentum); }
+	void AddForce(glm::vec3 force) { if (m_pRigidBody != nullptr) m_pRigidBody->AddForce(force); }
 
     void Update( float deltaTime, glm::vec3 gravity );
     void Draw() { m_pShape->Draw(m_position); };
 
-	void Translate(glm::vec3 positionDelta) { m_position += positionDelta; }
-    void AddVelocity(glm::vec3 vel) { if (m_pRigidBody != nullptr) m_pRigidBody->AddVelocity(vel);  }
 
-	
 	void Stop() {
 		if (m_pRigidBody != nullptr) m_pRigidBody->Stop();
 	}

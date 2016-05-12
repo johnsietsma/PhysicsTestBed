@@ -28,3 +28,8 @@ void PhysicsObject::Update(float deltaTime, glm::vec3 gravity)
         m_position += m_pRigidBody->CalculatePositionDelta(deltaTime, gravity);
     }
 }
+
+void PhysicsObject::Translate(glm::vec3 positionDelta)
+{ 
+	m_position += positionDelta; 
+}
