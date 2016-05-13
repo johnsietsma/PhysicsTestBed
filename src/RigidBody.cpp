@@ -1,11 +1,21 @@
 #include "RigidBody.h"
 
+#include <glm/glm.hpp>
+#include <glm/vec2.hpp>
+
 glm::vec3 RigidBody::CalculatePositionDelta(float deltaTime, glm::vec3 gravity)
 {
     glm::vec3 acceleration = m_force / m_mass;
-    acceleration += gravity;
+    glm::vec3 oldVelocity = m_velocity;
     m_velocity += acceleration * deltaTime;
-    glm::vec3 positionDelta = m_velocity * deltaTime;
+    m_velocity += gravity * deltaTime;
+
+    // See for a good overview of integration techniques
+    // https://jdickinsongames.wordpress.com/2015/01/22/numerical-integration-in-games-development-2/
+
+    // Midpoint method
+    glm::vec3 positionDelta = (oldVelocity+m_velocity)*0.5f * deltaTime;
+
     m_force = glm::vec3(0);
     return positionDelta;
 }
