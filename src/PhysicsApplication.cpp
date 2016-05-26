@@ -13,7 +13,6 @@
 
 #include <functional>
 #include <PxPhysicsAPI.h>
-#include <random>
 
 using namespace physx;
 
@@ -74,15 +73,13 @@ bool PhysicsApplication::startup()
     m_pPhysicsScene->AddObject(pBox3);
 	m_pPhysicsScene->AddObject(pBox4);
 
-	std::default_random_engine generator;
-	std::uniform_real_distribution<float> distribution(-3, 3);
-	auto randVel = std::bind(distribution,generator);
+	auto randVel = std::bind(m_distribution,m_generator);
 
 	for (int i = 0; i < 20; i++) {
 		const float spacing = 2;
 		// Add Sphere
 		auto pSphere = std::make_shared<PhysicsObject>(
-			glm::vec3(-20+i*spacing, 2, -20+i*spacing),			// Position
+			glm::vec3(-20+i*spacing, 2 + i, -20+i*spacing),		// Position
 			new Sphere(1),										// Sphere(radius)
 			new RigidBody(1, glm::vec3(randVel(),0,randVel()))	// Rigidbody(mass, vel)
 			);
@@ -90,9 +87,9 @@ bool PhysicsApplication::startup()
 	}
 
 	for (int i = 0; i < 20; i++) {
-		const float spacing = 2;
+		const float spacing = 2.1f;
 		auto pAABB = std::make_shared<PhysicsObject>(
-			glm::vec3(-20 + i*spacing, 5 + i, -20 + i*spacing),	// Position
+			glm::vec3(-20 + i*spacing, 6 + i, -20 + i*spacing),	// Position
 			new AABB(glm::vec3(1, 1, 1)),						// AABB(extents)
 			new RigidBody(1, glm::vec3(randVel(),0,randVel()))	// Rigidbody(mass,vel)
 			);
@@ -100,6 +97,7 @@ bool PhysicsApplication::startup()
 	}
 
     m_lastFrameTime = (float)glfwGetTime();
+	m_emitTimer = 0;
 
     return true;
 }
@@ -122,6 +120,22 @@ bool PhysicsApplication::update()
     float currentTime = (float)glfwGetTime();
     float deltaTime = currentTime - m_lastFrameTime;
     m_lastFrameTime = currentTime;
+
+	m_emitTimer += deltaTime;
+
+	if (m_emitTimer > 0.5f) {
+		float vel1 = m_distribution(m_generator);
+		float vel2 = m_distribution(m_generator);
+
+		auto pSphere = std::make_shared<PhysicsObject>(
+			glm::vec3(0,3,0),
+			new Sphere(1),
+			new RigidBody(1, glm::vec3(vel1, 0, vel2))
+			);
+		m_pPhysicsScene->AddObject(pSphere);
+
+		m_emitTimer = 0;
+	}
 
     vec4 white(1);
     vec4 black(0, 0, 0, 1);
