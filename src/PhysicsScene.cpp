@@ -17,7 +17,7 @@ void PhysicsScene::Update(float deltaTime)
 
 	for (auto& pPhysicsObject : m_pPhysicsObjects)
 	{
-		pPhysicsObject->AddForce(DampingCoeffecient * -pPhysicsObject->GetVelocity());
+		pPhysicsObject->AddForce(DampingCoeffecient * -pPhysicsObject->GetVelocity() * deltaTime);
 	}
 
     for (auto& pPhysicsObject : m_pPhysicsObjects)
