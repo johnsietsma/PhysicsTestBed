@@ -1,6 +1,8 @@
 #include "PhysicsApplication.h"
 
 #include "RigidBody.h"
+#include "PhysicsScene.h"
+#include "PhysXScene.h"
 #include "PhysicsObject.h"
 #include "Shapes.h"
 
@@ -35,66 +37,23 @@ bool PhysicsApplication::startup()
     m_camera.sensitivity = 3;
 
     m_pRenderer = std::make_unique<Renderer>();
-    m_pPhysicsScene = std::make_unique<PhysicsScene>();
+	m_pPhysicsScene = std::make_unique<PhysicsScene>( glm::vec3(-70,0,0)) ;
+	m_pPhysXScene = std::make_unique<PhysXScene>( glm::vec3(70, 0, 0) );
 
+
+	const float TableSize = 60;
+	const float BorderHeight = 15;
 
 	// Add Ground Plane
-	auto pGroundPlane = std::make_shared<PhysicsObject>(
-		glm::vec3(0), // Position
-		new Plane(glm::vec3(0, 1, 0), 0) // Normal and distance
-		);
-	m_pPhysicsScene->AddObject(pGroundPlane);
+	m_pPhysicsScene->AddPlaneStatic(glm::vec3(0, 1, 0), 0);
+	CreateBoundary(m_pPhysicsScene.get(), TableSize, BorderHeight);
+	CreateSpheres(m_pPhysicsScene.get(), 20, 2);
+	CreateAABBs(m_pPhysicsScene.get(), 20, 2.1f);
 
-	// Add boxes around the edges
-	constexpr int TableSize = 60;
-	constexpr int BorderHeight = 15;
-	auto pBox1 = std::make_shared<PhysicsObject>(
-		glm::vec3( 0, 0.5f, (TableSize/2)+1 ),		// Position
-		new AABB( glm::vec3(TableSize/2, BorderHeight, 1) )	// Extents
-		);
-
-	auto pBox2 = std::make_shared<PhysicsObject>(
-		glm::vec3(0, 0.5f, (-TableSize/2)-1 ),		// Position
-		new AABB(glm::vec3(TableSize / 2, BorderHeight, 1))	// Extents
-		);
-
-	auto pBox3 = std::make_shared<PhysicsObject>(
-		glm::vec3((TableSize/2)+1, 0.5f, 0),		// Position
-		new AABB(glm::vec3(1, BorderHeight, TableSize / 2))	// Extents
-		);
-
-	auto pBox4 = std::make_shared<PhysicsObject>(
-		glm::vec3((-TableSize/2)-1, 0.5f, 0),		// Position
-		new AABB(glm::vec3(1, BorderHeight, TableSize / 2))	// Extents
-		);
-
-    m_pPhysicsScene->AddObject(pBox1);
-    m_pPhysicsScene->AddObject(pBox2);
-    m_pPhysicsScene->AddObject(pBox3);
-	m_pPhysicsScene->AddObject(pBox4);
-
-	auto randVel = std::bind(m_distribution,m_generator);
-
-	for (int i = 0; i < 20; i++) {
-		const float spacing = 2;
-		// Add Sphere
-		auto pSphere = std::make_shared<PhysicsObject>(
-			glm::vec3(-20+i*spacing, 2 + i, -20+i*spacing),		// Position
-			new Sphere(1),										// Sphere(radius)
-			new RigidBody(1, glm::vec3(randVel(),0,randVel()))	// Rigidbody(mass, vel)
-			);
-		m_pPhysicsScene->AddObject(pSphere);
-	}
-
-	for (int i = 0; i < 20; i++) {
-		const float spacing = 2.1f;
-		auto pAABB = std::make_shared<PhysicsObject>(
-			glm::vec3(-20 + i*spacing, 6 + i, -20 + i*spacing),	// Position
-			new AABB(glm::vec3(1, 1, 1)),						// AABB(extents)
-			new RigidBody(1, glm::vec3(randVel(),0,randVel()))	// Rigidbody(mass,vel)
-			);
-		m_pPhysicsScene->AddObject(pAABB);
-	}
+	m_pPhysXScene->AddPlaneStatic(glm::vec3(0, 1, 0), 0);
+	CreateBoundary(m_pPhysXScene.get(), TableSize, BorderHeight);
+	CreateSpheres(m_pPhysXScene.get(), 20, 2);
+	CreateAABBs(m_pPhysXScene.get(), 20, 2.1f);
 
     m_lastFrameTime = (float)glfwGetTime();
 	m_emitTimer = 0;
@@ -124,15 +83,21 @@ bool PhysicsApplication::update()
 	m_emitTimer += deltaTime;
 
 	if (m_emitTimer > 0.5f) {
-		float vel1 = m_distribution(m_generator);
-		float vel2 = m_distribution(m_generator);
+		float velX = m_distribution(m_generator);
+		float velY = m_distribution(m_generator);
+		float velZ = m_distribution(m_generator);
 
-		auto pSphere = std::make_shared<PhysicsObject>(
-			glm::vec3(0,3,0),
-			new Sphere(1),
-			new RigidBody(1, glm::vec3(vel1, 0, vel2))
-			);
-		m_pPhysicsScene->AddObject(pSphere);
+		m_pPhysicsScene->AddSphereDynamic(
+			glm::vec3(0,3,0),			// Position
+			1,							// Radius
+			1, glm::vec3(velX, velY, velZ)	// Mass, vel
+		);
+
+		m_pPhysXScene->AddSphereDynamic(
+			glm::vec3(0, 3, 0),			// Position
+			1,							// Radius
+			1, glm::vec3(velX, velY, velZ)	// Mass, vel
+		);
 
 		m_emitTimer = 0;
 	}
@@ -150,7 +115,8 @@ bool PhysicsApplication::update()
 
     m_camera.update(deltaTime);
 
-    m_pPhysicsScene->Update(deltaTime);
+	m_pPhysicsScene->Update(deltaTime);
+	m_pPhysXScene->Update(deltaTime);
 
 
     return true;
@@ -163,7 +129,8 @@ void PhysicsApplication::draw()
 
     m_pRenderer->RenderAndClear(m_camera.view_proj);
 
-    m_pPhysicsScene->Draw();
+	m_pPhysicsScene->Draw();
+	m_pPhysXScene->Draw();
 
     Gizmos::draw(m_camera.proj, m_camera.view);
 
@@ -171,107 +138,53 @@ void PhysicsApplication::draw()
     glfwPollEvents();
 }
 
-void AddWidget(PxShape* shape, PxRigidActor* actor, vec4 geo_color)
+void PhysicsApplication::CreateBoundary(BasePhysicsScene* pPhysicsScene, float tableSize, float borderHeight )
 {
-    PxTransform full_transform = PxShapeExt::getGlobalPose(*shape, *actor);
-    vec3 actor_position(full_transform.p.x, full_transform.p.y, full_transform.p.z);
-    glm::quat actor_rotation(full_transform.q.w,
-        full_transform.q.x,
-        full_transform.q.y,
-        full_transform.q.z);
-    glm::mat4 rot(actor_rotation);
+	pPhysicsScene->AddAABBStatic(
+		glm::vec3(0, 0.5f, (tableSize / 2) + 1),	// Position
+		glm::vec3(tableSize / 2, borderHeight, 1)	// Extents
+	);
 
-    mat4 rotate_matrix = glm::rotate(10.f, glm::vec3(7, 7, 7));
+	pPhysicsScene->AddAABBStatic(
+		glm::vec3(0, 0.5f, (-tableSize / 2) - 1),		// Position
+		glm::vec3(tableSize / 2, borderHeight, 1)	// Extents
+	);
 
-    PxGeometryType::Enum geo_type = shape->getGeometryType();
+	pPhysicsScene->AddAABBStatic(
+		glm::vec3((tableSize / 2) + 1, 0.5f, 0),		// Position
+		glm::vec3(1, borderHeight, tableSize / 2)	// Extents
+	);
 
-    switch (geo_type)
-    {
-    case (PxGeometryType::eBOX) :
-    {
-        PxBoxGeometry geo;
-        shape->getBoxGeometry(geo);
-        vec3 extents(geo.halfExtents.x, geo.halfExtents.y, geo.halfExtents.z);
-        Gizmos::addAABBFilled(actor_position, extents, geo_color, &rot);
-    } break;
-    case (PxGeometryType::eCAPSULE) :
-    {
-        PxCapsuleGeometry geo;
-        shape->getCapsuleGeometry(geo);
-        Gizmos::addCapsule(actor_position, geo.halfHeight * 2, geo.radius, 16, 16, geo_color, &rot);
-    } break;
-    case (PxGeometryType::eSPHERE) :
-    {
-        PxSphereGeometry geo;
-        shape->getSphereGeometry(geo);
-        Gizmos::addSphereFilled(actor_position, geo.radius, 16, 16, geo_color, &rot);
-    } break;
-    case (PxGeometryType::ePLANE) :
-    {
+	pPhysicsScene->AddAABBStatic(
+		glm::vec3((-tableSize / 2) - 1, 0.5f, 0),		// Position
+		glm::vec3(1, borderHeight, tableSize / 2)	// Extents
+	);
 
-    } break;
-    }
+
 }
 
-void PhysicsApplication::renderGizmos(PxScene* physics_scene)
+void PhysicsApplication::CreateSpheres(BasePhysicsScene* pPhysicsScene, int sphereCount, float spacing)
 {
-    PxActorTypeFlags desiredTypes = PxActorTypeFlag::eRIGID_STATIC | PxActorTypeFlag::eRIGID_DYNAMIC;
-    PxU32 actor_count = physics_scene->getNbActors(desiredTypes);
-    PxActor** actor_list = new PxActor*[actor_count];
-	physics_scene->getActors(desiredTypes, actor_list, actor_count);
-    
-    vec4 geo_color(1, 0, 0, 1);
-    for (int actor_index = 0;
-        actor_index < (int)actor_count;
-        ++actor_index)
-    {
-        PxActor* curr_actor = actor_list[actor_index];
-        if (curr_actor->isRigidActor())
-        {
-            PxRigidActor* rigid_actor = (PxRigidActor*)curr_actor;
-            PxU32 shape_count = rigid_actor->getNbShapes();
-            PxShape** shapes = new PxShape*[shape_count];
-            rigid_actor->getShapes(shapes, shape_count);
+	auto randVel = std::bind(m_distribution, m_generator);
+	for (int i = 0; i < sphereCount; i++) {
+		pPhysicsScene->AddSphereDynamic(
+			glm::vec3(-20 + i*spacing, 2 + i, -20 + i*spacing),		// Position
+			1,													// Radius
+			1, glm::vec3(randVel(), 0, randVel())					// mass, vel
+		);
+	}
 
-            for (int shape_index = 0;
-                shape_index < (int)shape_count;
-                ++shape_index)
-            {
-                PxShape* curr_shape = shapes[shape_index];
-                AddWidget(curr_shape, rigid_actor, geo_color);
-            }
-
-            delete[]shapes;
-        }
-    }
-
-    delete[] actor_list;
-
-    int articulation_count = physics_scene->getNbArticulations();
-
-    for (int a = 0; a < articulation_count; ++a)
-    {
-        PxArticulation* articulation;
-		physics_scene->getArticulations(&articulation, 1, a);
-
-        int link_count = articulation->getNbLinks();
-
-        PxArticulationLink** links = new PxArticulationLink*[link_count];
-        articulation->getLinks(links, link_count);
-
-        for (int l = 0; l < link_count; ++l)
-        {
-            PxArticulationLink* link = links[l];
-            int shape_count = link->getNbShapes();
-
-            for (int s = 0; s < shape_count; ++s)
-            {
-                PxShape* shape;
-                link->getShapes(&shape, 1, s);
-                AddWidget(shape, link, geo_color);
-            }
-        }
-        delete[] links;
-    }
 }
 
+void PhysicsApplication::CreateAABBs(BasePhysicsScene* pPhysicsScene, int aabbCount, float spacing)
+{
+	auto randVel = std::bind(m_distribution, m_generator);
+	for (int i = 0; i < aabbCount; i++) {
+		pPhysicsScene->AddAABBDynamic(
+			glm::vec3(-20 + i*spacing, 6 + i, -20 + i*spacing),	// Position
+			glm::vec3(1, 1, 1),									// Extents
+			1, glm::vec3(randVel(), 0, randVel())					// mass,vel
+		);
+	}
+
+}

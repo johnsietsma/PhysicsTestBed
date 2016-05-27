@@ -33,7 +33,7 @@ void Response( PhysicsObject* pObject1, PhysicsObject* pObject2, float overlap, 
 {
 	Separate(pObject1, pObject2, overlap, normal);
 
-	const float coefficientOfRestitution = 0.7f;
+	const float coefficientOfRestitution = 0.5f;
 
 	// Calculate the momentum along the collision normal
 	float impulse1 = -(1 + coefficientOfRestitution) * glm::dot(pObject1->GetMomentum(), normal);

@@ -40,6 +40,12 @@
     <ClCompile Include="src\RigidBody.cpp">
       <Filter>Physics</Filter>
     </ClCompile>
+    <ClCompile Include="src\PhysXScene.cpp">
+      <Filter>Physics</Filter>
+    </ClCompile>
+    <ClCompile Include="src\BasePhysicsScene.cpp">
+      <Filter>Physics</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="src\Collision.h">
@@ -86,6 +92,12 @@
     </ClInclude>
     <ClInclude Include="src\tiny_obj_loader.h">
       <Filter>Application</Filter>
+    </ClInclude>
+    <ClInclude Include="src\PhysXScene.h">
+      <Filter>Physics</Filter>
+    </ClInclude>
+    <ClInclude Include="src\BasePhysicsScene.h">
+      <Filter>Physics</Filter>
     </ClInclude>
   </ItemGroup>
   <ItemGroup>

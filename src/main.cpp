@@ -1,3 +1,5 @@
+//#include <vld.h>
+
 #include "PhysicsApplication.h"
 
 int main()
