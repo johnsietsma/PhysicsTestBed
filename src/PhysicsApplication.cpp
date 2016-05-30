@@ -83,9 +83,9 @@ bool PhysicsApplication::update()
 	m_emitTimer += deltaTime;
 
 	if (m_emitTimer > 0.5f) {
-		float velX = m_distribution(m_generator);
-		float velY = m_distribution(m_generator);
-		float velZ = m_distribution(m_generator);
+		float velX = m_velocityDistribution(m_generator);
+		float velY = m_velocityDistribution(m_generator);
+		float velZ = m_velocityDistribution(m_generator);
 
 		m_pPhysicsScene->AddSphereDynamic(
 			glm::vec3(0,3,0),			// Position
@@ -165,12 +165,14 @@ void PhysicsApplication::CreateBoundary(BasePhysicsScene* pPhysicsScene, float t
 
 void PhysicsApplication::CreateSpheres(BasePhysicsScene* pPhysicsScene, int sphereCount, float spacing)
 {
-	auto randVel = std::bind(m_distribution, m_generator);
+	auto randVel = std::bind(m_velocityDistribution, m_generator);
 	for (int i = 0; i < sphereCount; i++) {
+        float mass = m_massDistribution(m_generator);
 		pPhysicsScene->AddSphereDynamic(
 			glm::vec3(-20 + i*spacing, 2 + i, -20 + i*spacing),		// Position
-			1,													// Radius
-			1, glm::vec3(randVel(), 0, randVel())					// mass, vel
+			std::pow(mass,0.2f),								    // Radius
+			mass,                                                   // Mass 
+            glm::vec3(randVel(), 0, randVel())					    // Vel
 		);
 	}
 
@@ -178,7 +180,7 @@ void PhysicsApplication::CreateSpheres(BasePhysicsScene* pPhysicsScene, int sphe
 
 void PhysicsApplication::CreateAABBs(BasePhysicsScene* pPhysicsScene, int aabbCount, float spacing)
 {
-	auto randVel = std::bind(m_distribution, m_generator);
+	auto randVel = std::bind(m_velocityDistribution, m_generator);
 	for (int i = 0; i < aabbCount; i++) {
 		pPhysicsScene->AddAABBDynamic(
 			glm::vec3(-20 + i*spacing, 6 + i, -20 + i*spacing),	// Position

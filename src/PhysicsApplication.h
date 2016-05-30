@@ -14,7 +14,10 @@
 class PhysicsApplication : public Application
 {
 public:
-	PhysicsApplication() : m_distribution(-20, 20) {}
+	PhysicsApplication() : 
+        m_velocityDistribution(-20, 20),
+        m_massDistribution(1, 10)
+    {}
 
 	virtual bool startup();
 	virtual void shutdown();
@@ -32,7 +35,8 @@ public:
 	float m_emitTimer;
 
 	std::default_random_engine m_generator;
-	std::uniform_real_distribution<float> m_distribution;
+    std::uniform_real_distribution<float> m_velocityDistribution;
+    std::uniform_real_distribution<float> m_massDistribution;
 
 private:
 	void CreateBoundary(BasePhysicsScene* pPhysicsScene, float tableSize, float borderHeight);

@@ -35,13 +35,14 @@ void Response( PhysicsObject* pObject1, PhysicsObject* pObject2, float overlap, 
 
 	const float coefficientOfRestitution = 0.5f;
 
-	// Calculate the momentum along the collision normal
-	float impulse1 = -(1 + coefficientOfRestitution) * glm::dot(pObject1->GetMomentum(), normal);
-	float impulse2 = -(1 + coefficientOfRestitution) * glm::dot(pObject2->GetMomentum(), normal);
+    glm::vec3 relativeVel = pObject2->GetVelocity() - pObject1->GetVelocity();
+    float velocityAlongNormal = glm::dot(relativeVel, normal);
+    float impulseAmount = -(1 - coefficientOfRestitution) * velocityAlongNormal;
+    impulseAmount /= 1 / pObject1->GetMass() + 1 / pObject2->GetMass();
 
-	// Apply the change in momentum
-    pObject1->AddMomentum(impulse1 * normal);
-    pObject2->AddMomentum(impulse2 * normal);
+    glm::vec3 impulse = impulseAmount * normal;
+    pObject1->AddVelocity(1 / pObject1->GetMass() * -impulse);
+    pObject1->AddVelocity(1 / pObject2->GetMass() * +impulse);
 }
 
 
